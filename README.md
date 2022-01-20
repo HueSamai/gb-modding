@@ -11,8 +11,6 @@ If you want to donate: https://shorturl.at/ptMOZ
 Here's a picture of the tab:
 \!\[feature Tab\]\(images/tab.png\)
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
 ## Requirements
 
 You need to install the Gang Beasts Mod Loader for it to work. It's not in the game by default.

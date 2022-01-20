@@ -1,3 +1,4 @@
+import { Func } from 'mocha';
 import * as vscode from 'vscode'
 
 // CODE BASE NOT WRITTEN BY ME: https://github.com/microsoft/vscode-extension-samples/tree/main/webview-view-sample
@@ -9,6 +10,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
 	constructor(
 		private readonly _extensionUri: vscode.Uri,
+		private readonly handleMessages: Function
 	) { }
 
 	public resolveWebviewView(
@@ -30,8 +32,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 		webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
 		webviewView.webview.onDidReceiveMessage(data => {
-			switch (data.type) {
-			}
+			this.handleMessages(data.type, data.value);
 		});
 	}
 
@@ -60,11 +61,22 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 				<link href="${styleMainUri}" rel="stylesheet">
 			</head>
 			<body>
+				<br/>
+
+				<label>Project name</label>
+				<input id="project-name" placeholder="Enter project name..."/>
                 <button id="create-project">Create Project</button>
-                <label id="add-reference-label">
+
+				<br/>
+
+				<button id="build-project">Build Project</button>
+
+				<br/>
+				
+                <button id="add-reference">
+					<input type="file" id="add-reference-input" multiple/>
                     Add Reference
-                    <input type="file" id="add-reference">
-                </label>
+                </button>
                 
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>

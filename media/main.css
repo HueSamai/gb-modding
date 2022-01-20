@@ -2,31 +2,10 @@ input[type="file"] {
     display: none;
 }
 
-#add-reference-label {
-	border: none;
-	padding: var(--input-padding-vertical) var(--input-padding-horizontal);
-	width: 100%;
-	text-align: center;
-	outline: 1px solid transparent;
-	outline-offset: 2px !important;
-	color: var(--vscode-button-foreground);
-	background: var(--vscode-button-background);
+body {
+    background-color: var(--vscode-editorWidget-background);
 }
 
-#add-reference-label:hover {
-	cursor: pointer;
-	background: var(--vscode-button-hoverBackground);
-}
-
-#add-reference-label:focus {
-	outline-color: var(--vscode-focusBorder);
-}
-
-#add-reference-label.secondary {
-	color: var(--vscode-button-secondaryForeground);
-	background: var(--vscode-button-secondaryBackground);
-}
-
-#add-reference-label.secondary:hover {
-	background: var(--vscode-button-secondaryHoverBackground);
+#delete-project {
+    background-color: var(--vscode-errorForeground);
 }

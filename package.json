@@ -10,30 +10,59 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onView:gb-modding-sidebar"
+		"onView:gb-modding-sidebar",
+		"onCommand:gb-modding.createProject",
+		"onCommand:gb-modding.buildProject"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"viewsContainers": {
-			"activitybar": [
-			  {
-				"id": "gb-modding-sidebar-view",
-				"title": "Gang Beasts Modding Tools",
-				"icon": "media/icon.svg"
-			  }
+		"viewsContainers": 
+		{
+			"activitybar": 
+			[
+				{
+					"id": "gb-modding-sidebar-view",
+					"title": "Gang Beasts Modding Tools",
+					"icon": "media/icon.svg"
+			  	}
 			]
-		  },
-		  "views": {
-			"gb-modding-sidebar-view": [
-			  {
-				"type": "webview",
-				"id": "gb-modding-sidebar",
-				"name": "Gang Beasts Modding Tools",
-				"icon": "media/icon.svg",
-				"contextualTitle": "Gang Beasts Modding Tools"
-			  }
+		},
+		"views": 
+		{
+			"gb-modding-sidebar-view": 
+			[
+			  	{
+					"type": "webview",
+					"id": "gb-modding-sidebar",
+					"name": "Gang Beasts Modding Tools",
+					"icon": "media/icon.svg",
+					"contextualTitle": "Gang Beasts Modding Tools"
+			  	}
 			]
+		},
+		"commands" : 
+		[
+			{
+				"command": "gb-modding.createProject",
+				"title": "Gang Beasts Modding Tools: Create"
+			},
+			{
+				"command": "gb-modding.buildProject",
+				"title": "Gang Beasts Modding Tools: Build"
+			}
+		],
+		"configuration": {
+			"id": "gb-modding.configuration",
+			"title": "Gang Beasts Modding",
+			"properties": {
+			  "gangBeastsModding.gameDirectory": {
+				"type": "string",
+				"default": "",
+				"description": "The absolute path to the folder where Gang Beasts is installed in."
+			  }
+			}
 		  }
+	  
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",

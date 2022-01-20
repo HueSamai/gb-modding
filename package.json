@@ -3,6 +3,10 @@
 	"displayName": "Gang Beasts Mod Tools",
 	"description": "Adds features to make coding and building mods for dotpy's Gang Beasts Mod Loader a breeze.",
 	"version": "0.0.1",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/HueSamai/gb-modding"
+	},
 	"engines": {
 		"vscode": "^1.63.0"
 	},

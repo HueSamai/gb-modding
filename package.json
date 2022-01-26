@@ -1,5 +1,6 @@
 {
 	"name": "gb-modding",
+	"publisher": "dotpy",
 	"displayName": "Gang Beasts Mod Tools",
 	"description": "Adds features to make coding and building mods for dotpy's Gang Beasts Mod Loader a breeze.",
 	"version": "0.0.1",

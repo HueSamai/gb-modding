@@ -292,16 +292,24 @@ function onBuildTClosed() {
 
 	let target = vscode.Uri.joinPath(modUri, "Mods", getProjectName() + ".dll");
 	
-	vscode.workspace.fs.delete(target); // deletes it otherwise then won't be called because it won't copy
-
+	
 	if (modUri.path == "/") {
 		vscode.window.showWarningMessage(
 			"Set your Gang Beasts game directory in settings, to automatically build to your Mods folder."
 		);
 	}
 	else {
+		let deleted = false;
+		vscode.workspace.fs.delete(target).then(
+			() => {
+				vscode.workspace.fs.copy(dll, target);
+				deleted = true;
+			}
+		);
+		
+		if (deleted) return;
 		vscode.workspace.fs.copy(dll, target);
-	}
+	} 
 }
 
 function onCreatingTClosed() {

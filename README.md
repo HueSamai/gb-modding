@@ -6,10 +6,7 @@ This was made for the Gang Beasts Mod Loader made by me (dotpy).
 Here's a tutorial on how to install it: https://www.youtube.com/watch?v=lQ8TyoloMiE
 If you want to donate: https://shorturl.at/ptMOZ
 
-## Features
-
-Here's a picture of the tab:
-\!\[feature Tab\]\(images/tab.png\)
+Source code: https://github.com/HueSamai/gb-modding
 
 ## Requirements
 
@@ -21,9 +18,5 @@ Here's a tutorial on how to install it: https://www.youtube.com/watch?v=lQ8Tyolo
 Adds a setting so that the extension knows where you Gang Beasts folder is:
 
 * `gangBeastsModding.gameDirectory`: Allows for projects to build direcly to your Mods folder.
-
-## Known Issues
-
-'bin' folder randomly appears. Just delete it.
 
 **Enjoy!**

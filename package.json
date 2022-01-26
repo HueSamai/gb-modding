@@ -3,6 +3,7 @@
 	"displayName": "Gang Beasts Mod Tools",
 	"description": "Adds features to make coding and building mods for dotpy's Gang Beasts Mod Loader a breeze.",
 	"publisher": "dotpy",
+	"icon": "media/icon.png",
 	"version": "1.0.1",
 	"repository": {
 		"type": "git",

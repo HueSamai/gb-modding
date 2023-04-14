@@ -1,10 +1,10 @@
 {
 	"name": "gb-modding",
-	"displayName": "Gang Beasts Mod Tools",
-	"description": "Adds features to make coding and building mods for dotpy's Gang Beasts Mod Loader a breeze.",
+	"displayName": "Cement Modding Tools",
+	"description": "Adds features to make coding and building mods for the Cement Mod Loader a breeze.",
 	"publisher": "dotpy",
 	"icon": "media/icon.png",
-	"version": "1.0.3",
+	"version": "2.0.0",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/HueSamai/gb-modding"
@@ -18,36 +18,55 @@
 	"activationEvents": [
 		"onView:gb-modding-sidebar",
 		"onCommand:gb-modding.createProject",
-		"onCommand:gb-modding.buildProject"
+		"onCommand:gb-modding.buildProject",
+		"onCommand:gb-modding.addFileToGit",
+		"onCommand:gb-modding.removeFileFromGit",
+		"onCommand:gb-modding.addFileToCMTFile",
+		"onCommand:gb-modding.removeFileFromCMTFile"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"viewsContainers": 
-		{
-			"activitybar": 
-			[
+		"menus": {
+			"explorer/context": [
+				{
+					"command": "gb-modding.addFileToGit",
+					"group": "CustomGroup"
+				},
+				{
+					"command": "gb-modding.removeFileFromGit",
+					"group": "CustomGroup"
+				},
+				{
+					"command": "gb-modding.addFileToCMTFile",
+					"group": "CustomGroup"
+				},
+				{
+					"command": "gb-modding.removeFileFromCMTFile",
+					"group": "CustomGroup"
+				}
+			]
+		},
+		"viewsContainers": {
+			"activitybar": [
 				{
 					"id": "gb-modding-sidebar-view",
 					"title": "Gang Beasts Modding Tools",
 					"icon": "media/icon.svg"
-			  	}
+				}
 			]
 		},
-		"views": 
-		{
-			"gb-modding-sidebar-view": 
-			[
-			  	{
+		"views": {
+			"gb-modding-sidebar-view": [
+				{
 					"type": "webview",
 					"id": "gb-modding-sidebar",
 					"name": "Gang Beasts Modding Tools",
 					"icon": "media/icon.svg",
 					"contextualTitle": "Gang Beasts Modding Tools"
-			  	}
+				}
 			]
 		},
-		"commands" : 
-		[
+		"commands": [
 			{
 				"command": "gb-modding.createProject",
 				"title": "Gang Beasts Modding Tools: Create"
@@ -55,20 +74,45 @@
 			{
 				"command": "gb-modding.buildProject",
 				"title": "Gang Beasts Modding Tools: Build"
+			},
+			{
+				"command": "gb-modding.addFileToGit",
+				"title": "Add File to GitHub Repo"
+			},
+			{
+				"command": "gb-modding.removeFileFromGit",
+				"title": "Remove File from GitHub Repo"
+			},
+			{
+				"command": "gb-modding.addFileToCMTFile",
+				"title": "Add File to Cement (.cmt) File"
+			},
+			{
+				"command": "gb-modding.removeFileFromCMTFile",
+				"title": "Remove File from Cement (.cmt) File"
 			}
 		],
 		"configuration": {
 			"id": "gb-modding.configuration",
-			"title": "Gang Beasts Modding",
+			"title": "Cement Modding Tools",
 			"properties": {
-			  "gangBeastsModding.gameDirectory": {
-				"type": "string",
-				"default": "",
-				"description": "The absolute path to the folder where Gang Beasts is installed in."
-			  }
+				"gangBeastsModding.gameDirectory": {
+					"type": "string",
+					"default": "",
+					"description": "The absolute path to the folder where Gang Beasts is installed in."
+				},
+				"gangBeastsModding.gitHubName": {
+					"type": "string",
+					"default": "",
+					"description": "Your github unique account name."
+				},
+				"gangBeastsModding.authorName": {
+					"type": "string",
+					"default": "Uncreditted",
+					"description": "Your preferred default author name, used in generated .cmt files."
+				}
 			}
-		  }
-	  
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",

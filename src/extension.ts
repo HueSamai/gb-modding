@@ -276,6 +276,11 @@ public class ` + getProjectName() + ` : CementMod {
 
 async function createBaseCMTFile(uri: vscode.Uri)
 {
+	if (GITHUB_REPO_NAME == "")
+	{
+		return;
+	}
+
 	const cmt = 
 `Name=${getProjectName()}
 Author=${getAuthorName()}
@@ -600,7 +605,8 @@ async function onBuildTClosed() {
 	vscode.window.showInformationMessage("Finished building project!");
 
 	// copy cmt to mods folder
-	const cmtFile = vscode.Uri.joinPath(vscode.Uri.file(projectPath), getProjectName() + ".cmt");
+	await loadRepoName();
+	const cmtFile = await getCMTUri();
 	const modUri = vscode.Uri.file(getGBFolder());
 
 	let target = vscode.Uri.joinPath(modUri, "Mods", getProjectName() + ".cmt");

@@ -444,6 +444,9 @@ async function handleMessages(type: string, value: string) {
 	else if (type == "build-project") {
 		vscode.commands.executeCommand("gb-modding.buildProject");
 	}
+	else if (type == "publish-project") {
+		vscode.commands.executeCommand("gb-modding.publishProject");
+	}
 	else if (type == "add-reference") {
 		const paths = value.split(",");
 		addReferences(paths);
@@ -457,8 +460,9 @@ async function handleMessages(type: string, value: string) {
 
 export function activate(context: vscode.ExtensionContext) {
 
-	let busyBuilding = false;
+	let busyPublishing = false;
 	let busyCreating = false;
+	let busyBuilding = false;
 
 	setProjectName(); // my function naming skills are amazing...
 
@@ -562,21 +566,66 @@ export function activate(context: vscode.ExtensionContext) {
 		removeFileFromCMTFile(uri);
 	}));
 
-
 	context.subscriptions.push(vscode.commands.registerCommand("gb-modding.buildProject", async function () {
 		if (busyCreating) {
 			vscode.window.showErrorMessage("Wait until the project is created to build.");
 			return;
 		}
-
-		if (busyBuilding) {
-			vscode.window.showErrorMessage("Already building.");
+		if (busyPublishing) {
+			vscode.window.showErrorMessage("Busy publishing...");
+			return;
+		}
+		if (busyBuilding)
+		{
+			vscode.window.showErrorMessage("Already building...");
 			return;
 		}
 
-		vscode.window.showInformationMessage("Building project...");
+		const projectPath = getProjectPath();
+		if (projectPath == null) return;
+
+		await loadRepoName();
+		if (GITHUB_REPO_NAME == "")
+		{
+			vscode.window.showErrorMessage("You need to publish to a GitHub repo before test building.");
+			return;
+		}
+
+		if (!(await doesFileExist(await getCMTUri())))
+		{
+			vscode.window.showErrorMessage("You need a Cement (.cmt) file in order to test build mods.");
+			return;
+		}
 
 		busyBuilding = true;
+
+		vscode.window.showInformationMessage("Building project...");
+
+		const terminal = vscode.window.createTerminal("you're getting hacked lol"); //just thought it would be funny lol
+
+		terminal.sendText("dotnet build --no-dependencies -v 0 -o build\n");
+		terminal.sendText("exit\n"); // sort of smart code i think bc im dumb
+	}));
+
+
+	context.subscriptions.push(vscode.commands.registerCommand("gb-modding.publishProject", async function () {
+		if (busyCreating) {
+			vscode.window.showErrorMessage("Wait until the project is created to build.");
+			return;
+		}
+		if (busyPublishing) {
+			vscode.window.showErrorMessage("Already publishing...");
+			return;
+		}
+		if (busyBuilding)
+		{
+			vscode.window.showErrorMessage("Busy building...");
+			return;
+		}
+
+		vscode.window.showInformationMessage("Publishing project...");
+
+		busyPublishing = true;
 
 		const terminal = vscode.window.createTerminal("you're getting hacked lol"); //just thought it would be funny lol
 
@@ -587,22 +636,84 @@ export function activate(context: vscode.ExtensionContext) {
 	}));
 
 	vscode.window.onDidCloseTerminal(e => { // probably a dumb way of doing it but idc
-		if (busyBuilding) {
-			busyBuilding = false;
-			onBuildTClosed();
+		if (busyPublishing) {
+			busyPublishing = false;
+			onPublishTClosed();
 		}
-		if (busyCreating) {
+		else if (busyCreating) {
 			busyCreating = false;
 			onCreatingTClosed();
+		}
+		else if (busyBuilding)
+		{
+			busyBuilding = false;
+			onBuildTClosed();
 		}
 	});
 }
 
-async function onBuildTClosed() {
+async function onBuildTClosed()
+{
 	const projectPath = getProjectPath();
 	if (projectPath == null) return;
 
-	vscode.window.showInformationMessage("Finished building project!");
+	const cmtUri = await getCMTUri();
+
+	var loadedCMT = {};
+	let lines = (await vscode.workspace.fs.readFile(cmtUri)).toString().split('\n');
+	for (let i = 0; i < lines.length; i++)
+	{
+		if (lines[i] == "")
+		{
+			continue;
+		}
+		let split = lines[i].split('=');
+		(loadedCMT as any)[split[0]] = split.splice(1).join('=');
+	}
+
+	let gbFolder = getGBFolder();
+	let modCacheFolderName = (loadedCMT as any)['Author'] + '.' + (loadedCMT as any)['Name']
+	const baseURIForCache = vscode.Uri.joinPath(vscode.Uri.file(gbFolder), "Gang Beasts_Data", "modcache", modCacheFolderName);
+	if (!(await doesFileExist(baseURIForCache)))
+	{
+		vscode.window.showErrorMessage("No modcache folder found. Run Gang Beasts then retry.");
+		return;
+	}
+
+	let pathToNewDLL = vscode.Uri.joinPath(vscode.Uri.file(projectPath), getProjectName() + ".dll");
+	if (await doesFileExist(pathToNewDLL))
+	{
+		await vscode.workspace.fs.delete(pathToNewDLL);
+	}
+
+	let pathToDLL = vscode.Uri.joinPath(vscode.Uri.file(projectPath), "build", getProjectName() + ".dll");
+	if (await doesFileExist(pathToDLL))
+	{
+		await vscode.workspace.fs.copy(pathToDLL,pathToNewDLL);
+	}
+
+	let links = (loadedCMT as any)['Links'].split(',');
+	let githubLink = getGitBaseLink() + "/";
+	for (let i = 0; i < links.length; i++)
+	{
+		let relativePath = links[i].replace(githubLink, "");
+		const file = vscode.Uri.joinPath(vscode.Uri.file(projectPath), relativePath);
+		const target = vscode.Uri.joinPath(baseURIForCache, relativePath);
+
+		if (await doesFileExist(target))
+		{
+			await vscode.workspace.fs.delete(target);
+		}
+
+		await vscode.workspace.fs.copy(file, target);
+	}
+
+	vscode.window.showInformationMessage("Succesfully built test for mod!");
+}
+
+async function onPublishTClosed() {
+	const projectPath = getProjectPath();
+	if (projectPath == null) return;
 
 	// copy cmt to mods folder
 	await loadRepoName();
@@ -642,6 +753,8 @@ async function onBuildTClosed() {
 
 	vscode.commands.executeCommand("git.stageAll");
 	vscode.commands.executeCommand("git.commitAll");
+
+	vscode.window.showInformationMessage("Finished publishing project!");
 }
 
 async function onCreatingTClosed() {
@@ -699,8 +812,6 @@ async function onCreatingTClosed() {
 			terminal.sendText("exit\n");
 		}
 	);
-
-	vscode.commands.executeCommand("gb-modding.buildProject");
 }
 
 export function deactivate() { }

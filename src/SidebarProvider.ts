@@ -73,11 +73,16 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
 				<br/>
 				
+				<button id="publish-project">Publish Project</button>
+
+				<br/>
+				
                 <button id="add-reference">
 					<input type="file" id="add-reference-input" multiple/>
                     Add Reference
                 </button>
-                
+
+
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
 			</html>`;

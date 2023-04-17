@@ -26,6 +26,10 @@
         vscode.postMessage({ type: 'build-project', value: "" });
     });
 
+    document.getElementById("publish-project").addEventListener('click', function() {
+        vscode.postMessage({ type: 'publish-project', value: "" });
+    });
+
     addReference.addEventListener('change', function(event) {
         let message = "";
 

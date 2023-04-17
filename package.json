@@ -19,6 +19,7 @@
 		"onView:gb-modding-sidebar",
 		"onCommand:gb-modding.createProject",
 		"onCommand:gb-modding.buildProject",
+		"onCommand:gb-modding.publishProject",
 		"onCommand:gb-modding.addFileToGit",
 		"onCommand:gb-modding.removeFileFromGit",
 		"onCommand:gb-modding.addFileToCMTFile",
@@ -60,9 +61,9 @@
 				{
 					"type": "webview",
 					"id": "gb-modding-sidebar",
-					"name": "Gang Beasts Modding Tools",
+					"name": "Cement Modding Tools",
 					"icon": "media/icon.svg",
-					"contextualTitle": "Gang Beasts Modding Tools"
+					"contextualTitle": "Project Panel"
 				}
 			]
 		},
@@ -74,6 +75,10 @@
 			{
 				"command": "gb-modding.buildProject",
 				"title": "Gang Beasts Modding Tools: Build"
+			},
+			{
+				"command": "gb-modding.publishProject",
+				"title": "Gang Beasts Modding Tools: Publish Project"
 			},
 			{
 				"command": "gb-modding.addFileToGit",

@@ -69,10 +69,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
 				<br/>
 
-				<button id="build-project">Build Project</button>
+				<button id="build-project">Test Build Project</button>
 
 				<br/>
-				
+
 				<button id="publish-project">Publish Project</button>
 
 				<br/>

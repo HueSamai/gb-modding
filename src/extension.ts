@@ -16,15 +16,12 @@ import { IncomingMessage } from 'http';
 let PROJECT_NAME = "";
 let GITHUB_REPO_NAME = "";
 
-function isBaseDirectory(uri: vscode.Uri): boolean
-{
+function isBaseDirectory(uri: vscode.Uri): boolean {
 	return toRelativePath(uri) == "";
 }
 
-async function doesFileExist(uri: vscode.Uri): Promise<boolean>
-{
-	try
-	{
+async function doesFileExist(uri: vscode.Uri): Promise<boolean> {
+	try {
 		await vscode.workspace.fs.stat(uri);
 		return true;
 	}
@@ -42,20 +39,17 @@ function getGitHubName() {
 	return String(vscode.workspace.getConfiguration().get("gangBeastsModding.gitHubName"));
 }
 
-function getAuthorName(): string
-{
+function getAuthorName(): string {
 	return String(vscode.workspace.getConfiguration().get("gangBeastsModding.authorName"));
 }
 
-async function loadRepoName()
-{
+async function loadRepoName() {
 	const projectPath = getProjectPath();
 	if (projectPath == null) return;
 
 	const configUri = vscode.Uri.joinPath(vscode.Uri.file(projectPath), ".git", "config");
 	let url;
-	try
-	{
+	try {
 		url = /url = .*/gm.exec((await vscode.workspace.fs.readFile(configUri)).toString())?.[0];
 	}
 	catch
@@ -63,11 +57,10 @@ async function loadRepoName()
 		return;
 	}
 
-	if (url == null)
-	{
+	if (url == null) {
 		return;
 	}
-	
+
 	let split = url.split('/');
 
 	GITHUB_REPO_NAME = split[split.length - 1].split('.')[0];
@@ -91,17 +84,14 @@ function getGitIgnoreUri(): vscode.Uri {
 	return vscode.Uri.file("/");
 }
 
-async function getCMTUri(): Promise<vscode.Uri>
-{
+async function getCMTUri(): Promise<vscode.Uri> {
 	const projectPath = getProjectPath();
-	if (projectPath == null)
-	{
+	if (projectPath == null) {
 		return vscode.Uri.file("/");
 	}
 
 	const cmtUri = vscode.Uri.joinPath(vscode.Uri.file(projectPath), getProjectName() + ".cmt");
-	if (!await doesFileExist(cmtUri))
-	{
+	if (!await doesFileExist(cmtUri)) {
 		await createBaseCMTFile(cmtUri);
 	}
 	return cmtUri;
@@ -131,8 +121,7 @@ function projectExists(projectPath: string) {
 	return exists;
 }
 
-function getGitBaseLink()
-{
+function getGitBaseLink() {
 	return "https://raw.githubusercontent.com/" + getGitHubName() + "/" + GITHUB_REPO_NAME + "/master";
 }
 
@@ -182,15 +171,13 @@ async function addUriToGitIgnore(uri: vscode.Uri) {
 
 		let folders = relativePath.split('/');
 		let currentDir = "";
-		for (let i = 0; i < folders.length - 1; i++)
-		{
+		for (let i = 0; i < folders.length - 1; i++) {
 			currentDir += folders[i];
-			if (stringContents.includes(currentDir + "/*"))
-			{
+			if (stringContents.includes(currentDir + "/*")) {
 				currentDir += "/";
 				continue;
 			}
-			
+
 			stringContents += "\n!" + currentDir + "\n" + currentDir + "/*";
 			currentDir += "/";
 		}
@@ -233,6 +220,14 @@ function getVersionUri(): vscode.Uri {
 	return vscode.Uri.file("/");
 }
 
+function getMessageUri(): vscode.Uri {
+	const projectPath = getProjectPath();
+	if (projectPath != null) {
+		return vscode.Uri.joinPath(vscode.Uri.file(projectPath), "message");
+	}
+	return vscode.Uri.file("/");
+}
+
 async function incrementVersion() {
 	vscode.workspace.fs.readFile(getVersionUri()).then(async (contents) => {
 		let split = contents.toString().split('.');
@@ -246,6 +241,7 @@ function getDefaultGitIgnoreFile() {
 	return `
 *
 !version
+!message
 !${getProjectName()}.dll
 !${getProjectName()}.cmt`;
 }
@@ -261,12 +257,14 @@ public class ` + getProjectName() + ` : CementMod {
 
 	// The Cement Mod Class inherits from MonoBehaviour, so you can use all the methods of MonoBehaviour.
 
-    public void Start() {
+    public void Start() 
+	{
 		// Called once
 		Cement.Log("Loaded my mod!");
     }
     
-    public void Update() {
+    public void Update() 
+	{
 		// Called once every frame, in every scene
     }
 }`;
@@ -274,19 +272,19 @@ public class ` + getProjectName() + ` : CementMod {
 	return contents;
 }
 
-async function createBaseCMTFile(uri: vscode.Uri)
-{
-	if (GITHUB_REPO_NAME == "")
-	{
+async function createBaseCMTFile(uri: vscode.Uri) {
+	if (GITHUB_REPO_NAME == "") {
 		return;
 	}
 
-	const cmt = 
-`Name=${getProjectName()}
+	const cmt =
+		`Name=${getProjectName()}
 Author=${getAuthorName()}
-Message=This is a custom message!
+Message=${getGitBaseLink() + "/message"}
+CementFile=${getGitBaseLink() + "/" + getProjectName() + ".cmt"}
 Links=${getGitBaseLink() + "/" + getProjectName() + ".dll"}
-LatestVersion=${getGitBaseLink() + "/version"}`;
+LatestVersion=${getGitBaseLink() + "/version"}
+`;
 
 	await vscode.workspace.fs.writeFile(uri, Buffer.from(cmt, "utf-8"));
 }
@@ -370,27 +368,22 @@ function addReference(path: string, paths: string[]) {
 	);
 }
 
-function getLinkFromURI(uri: vscode.Uri): string
-{
+function getLinkFromURI(uri: vscode.Uri): string {
 	return getGitBaseLink() + "/" + encodeURIComponent(toRelativePath(uri));
 }
 
-async function addFileToCMTFile(uri: vscode.Uri)
-{
+async function addFileToCMTFile(uri: vscode.Uri) {
 	addUriToGitIgnore(uri);
 	const cmtUri = await getCMTUri();
 	let lines = (await vscode.workspace.fs.readFile(cmtUri)).toString().split("\n");
-	for (let i = 0; i < lines.length; i++)
-	{
+	for (let i = 0; i < lines.length; i++) {
 		let lineSplit = lines[i].split('=');
-		if (lineSplit[0] != "Links")
-		{
+		if (lineSplit[0] != "Links") {
 			continue;
 		}
 
 		let currentLinks = lineSplit[1];
-		if (currentLinks != "")
-		{
+		if (currentLinks != "") {
 			currentLinks += ",";
 		}
 		currentLinks += getLinkFromURI(uri);
@@ -403,15 +396,12 @@ async function addFileToCMTFile(uri: vscode.Uri)
 	await vscode.workspace.fs.writeFile(cmtUri, newContents);
 }
 
-async function removeFileFromCMTFile(uri: vscode.Uri)
-{
+async function removeFileFromCMTFile(uri: vscode.Uri) {
 	const cmtUri = await getCMTUri();
 	let lines = (await vscode.workspace.fs.readFile(cmtUri)).toString().split("\n");
-	for (let i = 0; i < lines.length; i++)
-	{
+	for (let i = 0; i < lines.length; i++) {
 		let lineSplit = lines[i].split('=');
-		if (lineSplit[0] != "Links")
-		{
+		if (lineSplit[0] != "Links") {
 			continue;
 		}
 
@@ -420,10 +410,8 @@ async function removeFileFromCMTFile(uri: vscode.Uri)
 		let oldLinks = lineSplit[1].split(',');
 		let newLinks = [];
 
-		for (let j = 0; j < oldLinks.length; j++)
-		{
-			if (oldLinks[j] != target)
-			{
+		for (let j = 0; j < oldLinks.length; j++) {
+			if (oldLinks[j] != target) {
 				newLinks.push(oldLinks[j]);
 			}
 		}
@@ -503,43 +491,36 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(vscode.commands.registerCommand("gb-modding.addFileToGit", async function (uri: vscode.Uri) {
-		if (isBaseDirectory(uri))
-		{
+		if (isBaseDirectory(uri)) {
 			vscode.window.showErrorMessage("Cannot add base directory to github repo.");
 			return;
 		}
-		if (GITHUB_REPO_NAME == "")
-		{
+		if (GITHUB_REPO_NAME == "") {
 			await loadRepoName();
 		}
-		
+
 		addUriToGitIgnore(uri);
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand("gb-modding.removeFileFromGit", async function (uri: vscode.Uri) {
-		if (isBaseDirectory(uri))
-		{
+		if (isBaseDirectory(uri)) {
 			vscode.window.showErrorMessage("Cannot remove base directory to github repo.");
 			return;
 		}
-		if (GITHUB_REPO_NAME == "")
-		{
+		if (GITHUB_REPO_NAME == "") {
 			await loadRepoName();
 		}
 		removeUriFromGitIgnore(uri);
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand("gb-modding.addFileToCMTFile", async function (uri: vscode.Uri) {
-		if (isBaseDirectory(uri))
-		{
+		if (isBaseDirectory(uri)) {
 			vscode.window.showErrorMessage("Cannot add base directory to cement file.");
 			return;
 		}
-		if (GITHUB_REPO_NAME == "")
-		{
+		if (GITHUB_REPO_NAME == "") {
 			await loadRepoName();
-			if (GITHUB_REPO_NAME == "")
-			{
+			if (GITHUB_REPO_NAME == "") {
 				vscode.window.showErrorMessage("Publish your project to a public github repo, before trying to add files to your Cement file.");
 				return;
 			}
@@ -549,16 +530,13 @@ export function activate(context: vscode.ExtensionContext) {
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand("gb-modding.removeFileFromCMTFile", async function (uri: vscode.Uri) {
-		if (isBaseDirectory(uri))
-		{
+		if (isBaseDirectory(uri)) {
 			vscode.window.showErrorMessage("Cannot remove base directory to cement file.");
 			return;
 		}
-		if (GITHUB_REPO_NAME == "")
-		{
+		if (GITHUB_REPO_NAME == "") {
 			await loadRepoName();
-			if (GITHUB_REPO_NAME == "")
-			{
+			if (GITHUB_REPO_NAME == "") {
 				vscode.window.showErrorMessage("Publish your project to a public github repo, before trying to remove files from your Cement file.");
 				return;
 			}
@@ -575,8 +553,7 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.showErrorMessage("Busy publishing...");
 			return;
 		}
-		if (busyBuilding)
-		{
+		if (busyBuilding) {
 			vscode.window.showErrorMessage("Already building...");
 			return;
 		}
@@ -585,14 +562,12 @@ export function activate(context: vscode.ExtensionContext) {
 		if (projectPath == null) return;
 
 		await loadRepoName();
-		if (GITHUB_REPO_NAME == "")
-		{
+		if (GITHUB_REPO_NAME == "") {
 			vscode.window.showErrorMessage("You need to publish to a GitHub repo before test building.");
 			return;
 		}
 
-		if (!(await doesFileExist(await getCMTUri())))
-		{
+		if (!(await doesFileExist(await getCMTUri()))) {
 			vscode.window.showErrorMessage("You need a Cement (.cmt) file in order to test build mods.");
 			return;
 		}
@@ -617,8 +592,7 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.showErrorMessage("Already publishing...");
 			return;
 		}
-		if (busyBuilding)
-		{
+		if (busyBuilding) {
 			vscode.window.showErrorMessage("Busy building...");
 			return;
 		}
@@ -644,16 +618,14 @@ export function activate(context: vscode.ExtensionContext) {
 			busyCreating = false;
 			onCreatingTClosed();
 		}
-		else if (busyBuilding)
-		{
+		else if (busyBuilding) {
 			busyBuilding = false;
 			onBuildTClosed();
 		}
 	});
 }
 
-async function onBuildTClosed()
-{
+async function onBuildTClosed() {
 	const projectPath = getProjectPath();
 	if (projectPath == null) return;
 
@@ -661,54 +633,66 @@ async function onBuildTClosed()
 
 	var loadedCMT = {};
 	let lines = (await vscode.workspace.fs.readFile(cmtUri)).toString().split('\n');
-	for (let i = 0; i < lines.length; i++)
-	{
-		if (lines[i] == "")
-		{
+	for (let i = 0; i < lines.length; i++) {
+		if (lines[i] == "") {
 			continue;
 		}
 		let split = lines[i].split('=');
-		(loadedCMT as any)[split[0]] = split.splice(1).join('=');
+		(loadedCMT as any)[split[0]] = split.splice(1).join('=').replace("\r", "");
 	}
 
 	let gbFolder = getGBFolder();
-	let modCacheFolderName = (loadedCMT as any)['Author'] + '.' + (loadedCMT as any)['Name']
+	let modCacheFolderName = (loadedCMT as any)['Author'] + '.' + (loadedCMT as any)['Name'];
 	const baseURIForCache = vscode.Uri.joinPath(vscode.Uri.file(gbFolder), "Gang Beasts_Data", "modcache", modCacheFolderName);
-	if (!(await doesFileExist(baseURIForCache)))
+
+	console.log(baseURIForCache);
+	if (!await doesFileExist(baseURIForCache))
 	{
-		vscode.window.showErrorMessage("No modcache folder found. Run Gang Beasts then retry.");
+		vscode.window.showErrorMessage("No modcache folder found for current project. Publish your project and run Gang Beasts.");
 		return;
 	}
-
-	let pathToNewDLL = vscode.Uri.joinPath(vscode.Uri.file(projectPath), getProjectName() + ".dll");
-	if (await doesFileExist(pathToNewDLL))
+	try 
 	{
-		await vscode.workspace.fs.delete(pathToNewDLL);
-	}
-
-	let pathToDLL = vscode.Uri.joinPath(vscode.Uri.file(projectPath), "build", getProjectName() + ".dll");
-	if (await doesFileExist(pathToDLL))
-	{
-		await vscode.workspace.fs.copy(pathToDLL,pathToNewDLL);
-	}
-
-	let links = (loadedCMT as any)['Links'].split(',');
-	let githubLink = getGitBaseLink() + "/";
-	for (let i = 0; i < links.length; i++)
-	{
-		let relativePath = links[i].replace(githubLink, "");
-		const file = vscode.Uri.joinPath(vscode.Uri.file(projectPath), relativePath);
-		const target = vscode.Uri.joinPath(baseURIForCache, relativePath);
-
-		if (await doesFileExist(target))
-		{
-			await vscode.workspace.fs.delete(target);
+		let pathToNewDLL = vscode.Uri.joinPath(vscode.Uri.file(projectPath), getProjectName() + ".dll");
+		if (await doesFileExist(pathToNewDLL)) {
+			await vscode.workspace.fs.delete(pathToNewDLL);
 		}
 
-		await vscode.workspace.fs.copy(file, target);
-	}
+		let pathToDLL = vscode.Uri.joinPath(vscode.Uri.file(projectPath), "build", getProjectName() + ".dll");
+		if (await doesFileExist(pathToDLL)) {
+			await vscode.workspace.fs.copy(pathToDLL, pathToNewDLL);
+		}
 
-	vscode.window.showInformationMessage("Succesfully built test for mod!");
+		let links = (loadedCMT as any)['Links'].split(',');
+		let githubLink = getGitBaseLink() + "/";
+		for (let i = 0; i < links.length; i++) {
+			let relativePath = links[i].replace(githubLink, "");
+			const file = vscode.Uri.joinPath(vscode.Uri.file(projectPath), relativePath);
+			const target = vscode.Uri.joinPath(baseURIForCache, relativePath);
+
+			if (await doesFileExist(target)) 
+			{
+				await vscode.workspace.fs.delete(target);
+			}
+			
+			console.log(target);
+			try
+			{
+				await vscode.workspace.fs.copy(file, target);
+			}
+			catch (e)
+			{
+				continue;
+			}
+		}
+
+		vscode.window.showInformationMessage("Succesfully built test for mod!");
+	}
+	catch
+	{
+		vscode.window.showErrorMessage("Failed to test build mod. Try publishing your project and running gang beasts. Make sure you also have a modcache folder setup.");
+		return;
+	}
 }
 
 async function onPublishTClosed() {
@@ -723,15 +707,13 @@ async function onPublishTClosed() {
 	let target = vscode.Uri.joinPath(modUri, "Mods", getProjectName() + ".cmt");
 
 	let pathToNewDLL = vscode.Uri.joinPath(vscode.Uri.file(projectPath), getProjectName() + ".dll");
-	if (await doesFileExist(pathToNewDLL))
-	{
+	if (await doesFileExist(pathToNewDLL)) {
 		await vscode.workspace.fs.delete(pathToNewDLL);
 	}
 
 	let pathToDLL = vscode.Uri.joinPath(vscode.Uri.file(projectPath), "build", getProjectName() + ".dll");
-	if (await doesFileExist(pathToDLL))
-	{
-		await vscode.workspace.fs.copy(pathToDLL,pathToNewDLL);
+	if (await doesFileExist(pathToDLL)) {
+		await vscode.workspace.fs.copy(pathToDLL, pathToNewDLL);
 	}
 
 	if (modUri.path == "/") {
@@ -740,13 +722,11 @@ async function onPublishTClosed() {
 		);
 	}
 	else {
-		if (await doesFileExist(target))
-		{
+		if (await doesFileExist(target)) {
 			await vscode.workspace.fs.delete(target);
 		}
 
-		if (await doesFileExist(cmtFile))
-		{
+		if (await doesFileExist(cmtFile)) {
 			await vscode.workspace.fs.copy(cmtFile, target);
 		}
 	}
@@ -795,7 +775,8 @@ async function onCreatingTClosed() {
 			}
 			const gitIgnoreContents = Buffer.from(getDefaultGitIgnoreFile(), 'utf8');
 			vscode.workspace.fs.writeFile(vscode.Uri.joinPath(vscode.Uri.file(projectPath), ".gitignore"), gitIgnoreContents).then(() => {
-				vscode.workspace.fs.writeFile(vscode.Uri.joinPath(vscode.Uri.file(projectPath), "version"), Buffer.from("0.0.0"));
+				vscode.workspace.fs.writeFile(getVersionUri(), Buffer.from("0.0.0"));
+				vscode.workspace.fs.writeFile(getMessageUri(), Buffer.from("This is a custom message!"));
 			});
 		});
 
